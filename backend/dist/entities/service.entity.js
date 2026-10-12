@@ -15,6 +15,7 @@ const clinic_entity_1 = require("./clinic.entity");
 let Service = class Service {
     id;
     clinic;
+    name;
     durationMinutes;
     priceCents;
     createdAt;
@@ -26,11 +27,15 @@ __decorate([
 ], Service.prototype, "id", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => clinic_entity_1.Clinic, (clinic) => clinic.services, {
-        onDelete: 'CASCADE',
+        onDelete: 'CASCADE'
     }),
     (0, typeorm_1.JoinColumn)({ name: 'clinic_id' }),
     __metadata("design:type", clinic_entity_1.Clinic)
 ], Service.prototype, "clinic", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'text' }),
+    __metadata("design:type", String)
+], Service.prototype, "name", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'int', name: 'duration_minutes' }),
     __metadata("design:type", Number)

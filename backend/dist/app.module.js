@@ -19,6 +19,7 @@ const service_entity_1 = require("./entities/service.entity");
 const patient_entity_1 = require("./entities/patient.entity");
 const appointment_entity_1 = require("./entities/appointment.entity");
 const db_bootstrap_service_1 = require("./db/db-bootstrap.service");
+const seeder_service_1 = require("./seed/seeder.service");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -41,7 +42,7 @@ exports.AppModule = AppModule = __decorate([
             })
         ],
         controllers: [app_controller_1.AppController],
-        providers: [app_service_1.AppService, db_bootstrap_service_1.DbBootstrapService],
+        providers: [app_service_1.AppService, db_bootstrap_service_1.DbBootstrapService, seeder_service_1.SeederService],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

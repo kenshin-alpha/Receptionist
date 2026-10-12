@@ -10,6 +10,7 @@ import { Service } from './entities/service.entity';
 import { Patient } from './entities/patient.entity';
 import { Appointment } from './entities/appointment.entity';
 import { DbBootstrapService } from './db/db-bootstrap.service';
+import { SeederService } from './seed/seeder.service';
 
 @Module({
   imports: [
@@ -29,6 +30,6 @@ import { DbBootstrapService } from './db/db-bootstrap.service';
     })
   ],
   controllers: [AppController],
-  providers: [AppService, DbBootstrapService],
+  providers: [AppService, DbBootstrapService, SeederService],
 })
 export class AppModule {}

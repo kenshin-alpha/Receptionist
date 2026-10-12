@@ -14,11 +14,13 @@ export class Service {
     id: string;
 
     @ManyToOne(() => Clinic, (clinic) => clinic.services, {
-        onDelete: 'CASCADE',
+        onDelete: 'CASCADE'
     })
     @JoinColumn({ name: 'clinic_id' })
     clinic: Clinic;
 
+    @Column({ type: 'text' })
+    name: string;
 
     @Column({ type: 'int', name: 'duration_minutes' })
     durationMinutes: number;
