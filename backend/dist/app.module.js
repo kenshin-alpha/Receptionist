@@ -12,6 +12,11 @@ const config_1 = require("@nestjs/config");
 const typeorm_1 = require("@nestjs/typeorm");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
+const clinic_entity_1 = require("./entities/clinic.entity");
+const clinic_hours_entity_1 = require("./entities/clinic-hours.entity");
+const practitioner_entity_1 = require("./entities/practitioner.entity");
+const service_entity_1 = require("./entities/service.entity");
+const patient_entity_1 = require("./entities/patient.entity");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -28,7 +33,7 @@ exports.AppModule = AppModule = __decorate([
                     username: configService.get('DB_USER'),
                     password: configService.get('DB_PASSWORD'),
                     database: configService.get('DB_NAME'),
-                    autoLoadEntities: true,
+                    entities: [clinic_entity_1.Clinic, clinic_hours_entity_1.ClinicHours, practitioner_entity_1.Practitioner, service_entity_1.Service, patient_entity_1.Patient],
                     synchronize: true,
                 }),
             })
