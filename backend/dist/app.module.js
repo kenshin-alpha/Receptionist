@@ -17,6 +17,8 @@ const clinic_hours_entity_1 = require("./entities/clinic-hours.entity");
 const practitioner_entity_1 = require("./entities/practitioner.entity");
 const service_entity_1 = require("./entities/service.entity");
 const patient_entity_1 = require("./entities/patient.entity");
+const appointment_entity_1 = require("./entities/appointment.entity");
+const db_bootstrap_service_1 = require("./db/db-bootstrap.service");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -33,13 +35,13 @@ exports.AppModule = AppModule = __decorate([
                     username: configService.get('DB_USER'),
                     password: configService.get('DB_PASSWORD'),
                     database: configService.get('DB_NAME'),
-                    entities: [clinic_entity_1.Clinic, clinic_hours_entity_1.ClinicHours, practitioner_entity_1.Practitioner, service_entity_1.Service, patient_entity_1.Patient],
+                    entities: [clinic_entity_1.Clinic, clinic_hours_entity_1.ClinicHours, practitioner_entity_1.Practitioner, service_entity_1.Service, patient_entity_1.Patient, appointment_entity_1.Appointment],
                     synchronize: true,
                 }),
             })
         ],
         controllers: [app_controller_1.AppController],
-        providers: [app_service_1.AppService],
+        providers: [app_service_1.AppService, db_bootstrap_service_1.DbBootstrapService],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

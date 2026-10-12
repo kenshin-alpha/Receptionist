@@ -8,6 +8,8 @@ import { ClinicHours } from './entities/clinic-hours.entity';
 import { Practitioner } from './entities/practitioner.entity';
 import { Service } from './entities/service.entity';
 import { Patient } from './entities/patient.entity';
+import { Appointment } from './entities/appointment.entity';
+import { DbBootstrapService } from './db/db-bootstrap.service';
 
 @Module({
   imports: [
@@ -21,12 +23,12 @@ import { Patient } from './entities/patient.entity';
         username: configService.get<string>('DB_USER'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
-        entities: [Clinic, ClinicHours, Practitioner, Service, Patient],
+        entities: [Clinic, ClinicHours, Practitioner, Service, Patient, Appointment],
         synchronize: true,
       }),
     })
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, DbBootstrapService],
 })
 export class AppModule {}
