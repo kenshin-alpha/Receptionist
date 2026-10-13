@@ -22,4 +22,13 @@ export declare class BookingService {
     private readonly appointments;
     constructor(clinics: Repository<Clinic>, hours: Repository<ClinicHours>, services: Repository<Service>, appointments: Repository<Appointment>);
     getAvailableSlots(q: AvailabilityQuery): Promise<Slot[]>;
+    book(input: {
+        clinicId: string;
+        practitionerId: string;
+        patientId: string;
+        serviceId: string;
+        startsAtUtc: Date;
+    }): Promise<Appointment>;
+    cancel(appointmentId: string): Promise<Appointment>;
+    reschedule(appointmentId: string, newStartUtc: Date): Promise<Appointment>;
 }

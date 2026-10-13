@@ -89,6 +89,63 @@ let BookingService = class BookingService {
         }
         return slots;
     }
+    async book(input) {
+        const service = await this.services.findOneBy({ id: input.serviceId });
+        if (!service)
+            throw new common_1.NotFoundException('Service not found');
+        const startsAt = input.startsAtUtc;
+        const endsAt = new Date(startsAt.getTime() + service.durationMinutes * 60_000);
+        try {
+            const appt = this.appointments.create({
+                clinic: { id: input.clinicId },
+                practitioner: { id: input.practitionerId },
+                patient: { id: input.patientId },
+                service: { id: input.serviceId },
+                startsAt,
+                endsAt,
+                status: 'booked',
+                depositStatus: 'none',
+            });
+            return await this.appointments.save(appt);
+        }
+        catch (err) {
+            if (err?.code === '23P01' || /no_overlapping_appointments/.test(err?.message ?? '')) {
+                throw new common_1.ConflictException('Slot is no longer available');
+            }
+            throw err;
+        }
+    }
+    async cancel(appointmentId) {
+        const appt = await this.appointments.findOneBy({ id: appointmentId });
+        if (!appt)
+            throw new common_1.NotFoundException('Appointment not found');
+        if (appt.status === 'cancelled')
+            return appt;
+        appt.status = 'cancelled';
+        return this.appointments.save(appt);
+    }
+    async reschedule(appointmentId, newStartUtc) {
+        const appt = await this.appointments.findOne({
+            where: { id: appointmentId },
+            relations: { service: true },
+        });
+        if (!appt)
+            throw new common_1.NotFoundException('Appointment not found');
+        if (appt.status !== 'booked') {
+            throw new common_1.ConflictException('Only booked appointments can be rescheduled');
+        }
+        appt.startsAt = newStartUtc;
+        appt.endsAt = new Date(newStartUtc.getTime() + appt.service.durationMinutes * 60_000);
+        try {
+            return await this.appointments.save(appt);
+        }
+        catch (err) {
+            if (err?.code === '23P01' || /no_overlapping_appointments/.test(err?.message ?? '')) {
+                throw new common_1.ConflictException('Slot is no longer available');
+            }
+            throw err;
+        }
+    }
 };
 exports.BookingService = BookingService;
 exports.BookingService = BookingService = __decorate([

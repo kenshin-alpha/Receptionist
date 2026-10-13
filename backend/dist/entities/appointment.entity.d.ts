@@ -2,7 +2,7 @@ import { Clinic } from './clinic.entity';
 import { Practitioner } from './practitioner.entity';
 import { Patient } from './patient.entity';
 import { Service } from './service.entity';
-export type AppointmentStatus = 'booked' | 'completed' | 'canceled' | 'no_show';
+export type AppointmentStatus = 'booked' | 'completed' | 'cancelled' | 'no_show';
 export type DepositStatus = 'none' | 'required' | 'paid';
 export declare class Appointment {
     id: string;

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, In } from 'typeorm';
 import { DateTime, Interval } from 'luxon';
@@ -108,6 +108,71 @@ export class BookingService {
 
         }
         return slots;
+    }
+
+    async book(input: {
+        clinicId: string;
+        practitionerId: string;
+        patientId: string;
+        serviceId: string;
+        startsAtUtc: Date;
+    }): Promise<Appointment> {
+    const service = await this.services.findOneBy({ id: input.serviceId });
+    if (!service) throw new NotFoundException('Service not found');
+
+    const startsAt = input.startsAtUtc;
+    const endsAt = new Date(startsAt.getTime() + service.durationMinutes * 60_000);
+
+    try {
+        const appt = this.appointments.create({
+            clinic: { id: input.clinicId } as any,
+            practitioner: { id: input.practitionerId } as any,
+            patient: { id: input.patientId } as any,
+            service: { id: input.serviceId } as any,
+            startsAt,
+            endsAt,
+            status: 'booked',
+            depositStatus: 'none',
+        });
+        return await this.appointments.save(appt);
+    } catch (err: any) {
+        // Postgres exclusion-constraint violation = overlap with existing booked appt.
+        if (err?.code === '23P01' || /no_overlapping_appointments/.test(err?.message ?? '')) {
+            throw new ConflictException('Slot is no longer available');
+            }
+        throw err;
+        }
+    }
+
+    async cancel(appointmentId: string): Promise<Appointment> {
+        const appt = await this.appointments.findOneBy({ id: appointmentId });
+        if (!appt) throw new NotFoundException('Appointment not found');
+        if (appt.status === 'cancelled') return appt; // idempotent
+        appt.status = 'cancelled';
+        return this.appointments.save(appt);
+    }
+
+    async reschedule(appointmentId: string, newStartUtc: Date): Promise<Appointment> {
+        const appt = await this.appointments.findOne({
+            where: { id: appointmentId },
+            relations: { service: true },
+        });
+        if (!appt) throw new NotFoundException('Appointment not found');
+        if (appt.status !== 'booked') {
+            throw new ConflictException('Only booked appointments can be rescheduled');
+        }
+
+        appt.startsAt = newStartUtc;
+        appt.endsAt = new Date(newStartUtc.getTime() + appt.service.durationMinutes * 60_000);
+
+        try {
+            return await this.appointments.save(appt);
+        } catch (err: any) {
+            if (err?.code === '23P01' || /no_overlapping_appointments/.test(err?.message ?? '')) {
+                throw new ConflictException('Slot is no longer available');
+            }
+        throw err;
+        } 
     }
 }
 
