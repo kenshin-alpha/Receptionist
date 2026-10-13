@@ -11,6 +11,8 @@ import { Patient } from './entities/patient.entity';
 import { Appointment } from './entities/appointment.entity';
 import { DbBootstrapService } from './db/db-bootstrap.service';
 import { SeederService } from './seed/seeder.service';
+import { BookingModule } from './booking/booking.module';
+
 
 @Module({
   imports: [
@@ -27,7 +29,8 @@ import { SeederService } from './seed/seeder.service';
         entities: [Clinic, ClinicHours, Practitioner, Service, Patient, Appointment],
         synchronize: true,
       }),
-    })
+    }),
+    BookingModule,
   ],
   controllers: [AppController],
   providers: [AppService, DbBootstrapService, SeederService],

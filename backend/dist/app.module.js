@@ -20,6 +20,7 @@ const patient_entity_1 = require("./entities/patient.entity");
 const appointment_entity_1 = require("./entities/appointment.entity");
 const db_bootstrap_service_1 = require("./db/db-bootstrap.service");
 const seeder_service_1 = require("./seed/seeder.service");
+const booking_module_1 = require("./booking/booking.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -39,7 +40,8 @@ exports.AppModule = AppModule = __decorate([
                     entities: [clinic_entity_1.Clinic, clinic_hours_entity_1.ClinicHours, practitioner_entity_1.Practitioner, service_entity_1.Service, patient_entity_1.Patient, appointment_entity_1.Appointment],
                     synchronize: true,
                 }),
-            })
+            }),
+            booking_module_1.BookingModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService, db_bootstrap_service_1.DbBootstrapService, seeder_service_1.SeederService],
