@@ -21,6 +21,7 @@ const appointment_entity_1 = require("./entities/appointment.entity");
 const db_bootstrap_service_1 = require("./db/db-bootstrap.service");
 const seeder_service_1 = require("./seed/seeder.service");
 const booking_module_1 = require("./booking/booking.module");
+const agent_module_1 = require("./agent/agent.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -42,6 +43,7 @@ exports.AppModule = AppModule = __decorate([
                 }),
             }),
             booking_module_1.BookingModule,
+            agent_module_1.AgentModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService, db_bootstrap_service_1.DbBootstrapService, seeder_service_1.SeederService],

@@ -12,6 +12,7 @@ import { Appointment } from './entities/appointment.entity';
 import { DbBootstrapService } from './db/db-bootstrap.service';
 import { SeederService } from './seed/seeder.service';
 import { BookingModule } from './booking/booking.module';
+import { AgentModule } from './agent/agent.module';
 
 
 @Module({
@@ -31,6 +32,7 @@ import { BookingModule } from './booking/booking.module';
       }),
     }),
     BookingModule,
+    AgentModule,
   ],
   controllers: [AppController],
   providers: [AppService, DbBootstrapService, SeederService],
