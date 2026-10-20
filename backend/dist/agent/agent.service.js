@@ -20,18 +20,23 @@ const groq_sdk_1 = __importDefault(require("groq-sdk"));
 const booking_service_1 = require("../booking/booking.service");
 const tools_1 = require("./tools");
 const system_prompt_1 = require("./system-prompt");
+const conversations_service_1 = require("../conversations/conversations.service");
 const MAX_TOOL_ITERATIONS = 6;
 let AgentService = AgentService_1 = class AgentService {
     booking;
+    conversations;
     logger = new common_1.Logger(AgentService_1.name);
     client;
     model;
-    constructor(config, booking) {
+    constructor(config, booking, conversations) {
         this.booking = booking;
+        this.conversations = conversations;
         this.client = new groq_sdk_1.default({ apiKey: config.getOrThrow('GROQ_API_KEY') });
         this.model = config.get('GROQ_MODEL') ?? 'llama-3.3-70b-versatile';
     }
-    async handleMessage(ctx, history, userMessage) {
+    async handleMessage(ctx, conversation, userMessage) {
+        await this.conversations.appendMessage(conversation, 'patient', userMessage);
+        const history = await this.conversations.getHistoryForLLM(conversation, 20);
         const messages = [
             { role: 'system', content: (0, system_prompt_1.buildSystemPrompt)(ctx) },
             ...history,
@@ -63,6 +68,7 @@ let AgentService = AgentService_1 = class AgentService {
                     }
                     const { ok, result } = await this.runTool(ctx, name, args);
                     auditLog.push({ name, args, result, succeeded: ok });
+                    await this.conversations.appendAction(conversation, name, args, result, ok);
                     messages.push({
                         role: 'tool',
                         tool_call_id: call.id,
@@ -72,14 +78,18 @@ let AgentService = AgentService_1 = class AgentService {
                 }
                 continue;
             }
+            const reply = (choice.content ?? '').trim();
+            await this.conversations.appendMessage(conversation, 'agent', reply);
             return {
                 reply: (choice.content ?? '').trim(),
                 toolCalls: auditLog,
             };
         }
         this.logger.warn('Agent hit MAX_TOOL_ITERATIONS');
+        const fallback = "I'm having trouble completing that right now. Let me put you through to a human - one moment.";
+        await this.conversations.appendMessage(conversation, 'agent', fallback);
         return {
-            reply: "I'm having trouble completing that right now. Let me put you through to a human - one moment.",
+            reply: fallback,
             toolCalls: auditLog,
         };
     }
@@ -139,6 +149,7 @@ exports.AgentService = AgentService;
 exports.AgentService = AgentService = AgentService_1 = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [config_1.ConfigService,
-        booking_service_1.BookingService])
+        booking_service_1.BookingService,
+        conversations_service_1.ConversationsService])
 ], AgentService);
 //# sourceMappingURL=agent.service.js.map

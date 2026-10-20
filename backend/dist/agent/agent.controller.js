@@ -17,12 +17,12 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const class_validator_1 = require("class-validator");
-const class_transformer_1 = require("class-transformer");
 const agent_service_1 = require("./agent.service");
 const clinic_entity_1 = require("../entities/clinic.entity");
 const practitioner_entity_1 = require("../entities/practitioner.entity");
 const patient_entity_1 = require("../entities/patient.entity");
 const service_entity_1 = require("../entities/service.entity");
+const conversations_service_1 = require("../conversations/conversations.service");
 class ChatMessageDto {
     role;
     content;
@@ -41,7 +41,7 @@ class ChatRequestDto {
     practitionerId;
     patientId;
     message;
-    history;
+    conversationId;
 }
 __decorate([
     (0, class_validator_1.IsUUID)(),
@@ -61,18 +61,19 @@ __decorate([
 ], ChatRequestDto.prototype, "message", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.ValidateNested)({ each: true }),
-    (0, class_transformer_1.Type)(() => ChatMessageDto),
-    __metadata("design:type", Array)
-], ChatRequestDto.prototype, "history", void 0);
+    (0, class_validator_1.IsUUID)(),
+    __metadata("design:type", String)
+], ChatRequestDto.prototype, "conversationId", void 0);
 let AgentController = class AgentController {
     agent;
+    convos;
     clinics;
     practs;
     patients;
     services;
-    constructor(agent, clinics, practs, patients, services) {
+    constructor(agent, convos, clinics, practs, patients, services) {
         this.agent = agent;
+        this.convos = convos;
         this.clinics = clinics;
         this.practs = practs;
         this.patients = patients;
@@ -89,7 +90,14 @@ let AgentController = class AgentController {
         if (!patient)
             throw new common_1.NotFoundException('Patient not found');
         const services = await this.services.find({ where: { clinic: { id: clinic.id } } });
-        return this.agent.handleMessage({
+        const conversation = await this.convos.getOrCreate({
+            clinic,
+            patient,
+            channel: 'web_chat',
+            channelIdentifier: `web: ${patient.id}`,
+            existingId: body.conversationId,
+        });
+        const result = await this.agent.handleMessage({
             clinicId: clinic.id,
             practitionerId: practitioner.id,
             patientId: patient.id,
@@ -102,7 +110,8 @@ let AgentController = class AgentController {
                 durationMinutes: s.durationMinutes,
                 priceCents: s.priceCents,
             })),
-        }, (body.history ?? []), body.message);
+        }, conversation, body.message);
+        return { conversationId: conversation.id, ...result };
     }
 };
 exports.AgentController = AgentController;
@@ -115,11 +124,12 @@ __decorate([
 ], AgentController.prototype, "chat", null);
 exports.AgentController = AgentController = __decorate([
     (0, common_1.Controller)('agent'),
-    __param(1, (0, typeorm_1.InjectRepository)(clinic_entity_1.Clinic)),
-    __param(2, (0, typeorm_1.InjectRepository)(practitioner_entity_1.Practitioner)),
-    __param(3, (0, typeorm_1.InjectRepository)(patient_entity_1.Patient)),
-    __param(4, (0, typeorm_1.InjectRepository)(service_entity_1.Service)),
+    __param(2, (0, typeorm_1.InjectRepository)(clinic_entity_1.Clinic)),
+    __param(3, (0, typeorm_1.InjectRepository)(practitioner_entity_1.Practitioner)),
+    __param(4, (0, typeorm_1.InjectRepository)(patient_entity_1.Patient)),
+    __param(5, (0, typeorm_1.InjectRepository)(service_entity_1.Service)),
     __metadata("design:paramtypes", [agent_service_1.AgentService,
+        conversations_service_1.ConversationsService,
         typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,

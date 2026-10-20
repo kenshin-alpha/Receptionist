@@ -5,6 +5,8 @@ import { BookingService } from '../booking/booking.service';
 import { tools } from './tools';
 import { buildSystemPrompt } from './system-prompt';
 import { AgentContext, AgentReply, ChatMessage } from './types';
+import { Conversation } from '../entities/conversation.entity';
+import { ConversationsService } from '../conversations/conversations.service';
 
 const MAX_TOOL_ITERATIONS = 6;
 
@@ -17,6 +19,7 @@ export class AgentService {
     constructor(
         config: ConfigService,
         private readonly booking: BookingService,
+        private readonly conversations: ConversationsService,
     ) {
         this.client = new Groq({ apiKey: config.getOrThrow<string>('GROQ_API_KEY')});
         this.model = config.get<string>('GROQ_MODEL') ?? 'llama-3.3-70b-versatile';
@@ -24,9 +27,12 @@ export class AgentService {
 
     async handleMessage(
         ctx: AgentContext,
-        history: ChatMessage[],
+        conversation: Conversation,
         userMessage: string,
     ): Promise<AgentReply> {
+        await this.conversations.appendMessage(conversation, 'patient', userMessage);
+
+        const history = await this.conversations.getHistoryForLLM(conversation, 20);
         const messages: ChatMessage[] = [
             { role: 'system', content: buildSystemPrompt(ctx) },
             ...history,
@@ -45,7 +51,6 @@ export class AgentService {
             });
 
             const choice = completion.choices[0].message;
-
             // If the LLM wants to call tools, run them and loop.
             if(choice.tool_calls && choice.tool_calls.length > 0) {
                 messages.push({
@@ -66,6 +71,9 @@ export class AgentService {
                     const {ok, result} = await this.runTool(ctx, name, args);
                     auditLog.push({ name, args, result, succeeded:ok});
 
+                    // Persist tool call to the audit log table.
+                    await this.conversations.appendAction(conversation, name, args, result, ok);
+
                     messages.push({
                         role: 'tool',
                         tool_call_id: call.id,
@@ -76,14 +84,22 @@ export class AgentService {
                 continue;
             }
 
+            const reply = (choice.content ?? '').trim();
+
+            // Persist the agent's final reply
+            await this.conversations.appendMessage(conversation, 'agent', reply);
+
             return {
                 reply: (choice.content ?? '').trim(),
                 toolCalls: auditLog,
             };
         }
         this.logger.warn('Agent hit MAX_TOOL_ITERATIONS');
+        const fallback = "I'm having trouble completing that right now. Let me put you through to a human - one moment.";
+
+        await this.conversations.appendMessage(conversation, 'agent', fallback);
         return {
-            reply: "I'm having trouble completing that right now. Let me put you through to a human - one moment.",
+            reply: fallback,
             toolCalls: auditLog,
         };
     }

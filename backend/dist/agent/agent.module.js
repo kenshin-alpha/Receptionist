@@ -16,6 +16,7 @@ const patient_entity_1 = require("../entities/patient.entity");
 const service_entity_1 = require("../entities/service.entity");
 const agent_service_1 = require("./agent.service");
 const agent_controller_1 = require("./agent.controller");
+const conversations_module_1 = require("../conversations/conversations.module");
 let AgentModule = class AgentModule {
 };
 exports.AgentModule = AgentModule;
@@ -23,6 +24,7 @@ exports.AgentModule = AgentModule = __decorate([
     (0, common_1.Module)({
         imports: [
             booking_module_1.BookingModule,
+            conversations_module_1.ConversationsModule,
             typeorm_1.TypeOrmModule.forFeature([clinic_entity_1.Clinic, practitioner_entity_1.Practitioner, patient_entity_1.Patient, service_entity_1.Service]),
         ],
         providers: [agent_service_1.AgentService],

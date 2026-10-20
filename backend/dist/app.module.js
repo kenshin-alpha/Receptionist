@@ -22,6 +22,10 @@ const db_bootstrap_service_1 = require("./db/db-bootstrap.service");
 const seeder_service_1 = require("./seed/seeder.service");
 const booking_module_1 = require("./booking/booking.module");
 const agent_module_1 = require("./agent/agent.module");
+const conversation_entity_1 = require("./entities/conversation.entity");
+const message_entity_1 = require("./entities/message.entity");
+const agent_action_entity_1 = require("./entities/agent-action.entity");
+const conversations_module_1 = require("./conversations/conversations.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -38,12 +42,13 @@ exports.AppModule = AppModule = __decorate([
                     username: configService.get('DB_USER'),
                     password: configService.get('DB_PASSWORD'),
                     database: configService.get('DB_NAME'),
-                    entities: [clinic_entity_1.Clinic, clinic_hours_entity_1.ClinicHours, practitioner_entity_1.Practitioner, service_entity_1.Service, patient_entity_1.Patient, appointment_entity_1.Appointment],
+                    entities: [clinic_entity_1.Clinic, clinic_hours_entity_1.ClinicHours, practitioner_entity_1.Practitioner, service_entity_1.Service, patient_entity_1.Patient, appointment_entity_1.Appointment, conversation_entity_1.Conversation, message_entity_1.Message, agent_action_entity_1.AgentAction,],
                     synchronize: true,
                 }),
             }),
             booking_module_1.BookingModule,
             agent_module_1.AgentModule,
+            conversations_module_1.ConversationsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService, db_bootstrap_service_1.DbBootstrapService, seeder_service_1.SeederService],

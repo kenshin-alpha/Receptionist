@@ -7,10 +7,12 @@ import { Patient } from '../entities/patient.entity';
 import { Service } from '../entities/service.entity';
 import { AgentService } from './agent.service';
 import { AgentController } from './agent.controller';
+import { ConversationsModule } from '../conversations/conversations.module';
 
 @Module({
     imports: [
         BookingModule,
+        ConversationsModule,
         TypeOrmModule.forFeature([Clinic, Practitioner, Patient, Service]),
     ],
     providers: [AgentService],

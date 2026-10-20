@@ -15,6 +15,7 @@ import { Practitioner } from '../entities/practitioner.entity';
 import { Patient } from '../entities/patient.entity';
 import { Service } from '../entities/service.entity';
 import { ChatMessage } from './types';
+import { ConversationsService } from '../conversations/conversations.service';
 
 class ChatMessageDto {
     @IsString()
@@ -32,15 +33,14 @@ class ChatRequestDto {
     @IsString() message: string;
 
     @IsOptional()
-    @ValidateNested({ each: true })
-    @Type(() => ChatMessageDto)
-    history?: ChatMessageDto[];
+    @IsUUID() conversationId?: string;
 }
 
 @Controller('agent')
 export class AgentController {
     constructor(
         private readonly agent: AgentService,
+        private readonly convos: ConversationsService,
         @InjectRepository(Clinic) private clinics: Repository<Clinic>,
         @InjectRepository(Practitioner) private practs: Repository<Practitioner>,
         @InjectRepository(Patient) private patients: Repository<Patient>,
@@ -60,7 +60,15 @@ export class AgentController {
 
         const services = await this.services.find({ where: { clinic: { id: clinic.id}}})
 
-        return this.agent.handleMessage( {
+        const conversation = await this.convos.getOrCreate({
+            clinic,
+            patient,
+            channel: 'web_chat',
+            channelIdentifier: `web: ${patient.id}`,
+            existingId: body.conversationId,
+        })
+
+        const result = await this.agent.handleMessage( {
             clinicId: clinic.id,
             practitionerId: practitioner.id,
             patientId: patient.id,
@@ -74,8 +82,9 @@ export class AgentController {
                 priceCents: s.priceCents,
             })),
         },
-        (body.history ?? []) as ChatMessage[],
+        conversation,
         body.message,
         );
+        return { conversationId: conversation.id, ...result };
     }
 }

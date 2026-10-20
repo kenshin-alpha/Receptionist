@@ -13,6 +13,10 @@ import { DbBootstrapService } from './db/db-bootstrap.service';
 import { SeederService } from './seed/seeder.service';
 import { BookingModule } from './booking/booking.module';
 import { AgentModule } from './agent/agent.module';
+import { Conversation } from './entities/conversation.entity';
+import { Message } from './entities/message.entity';
+import { AgentAction } from './entities/agent-action.entity';
+import { ConversationsModule } from './conversations/conversations.module';
 
 
 @Module({
@@ -27,12 +31,13 @@ import { AgentModule } from './agent/agent.module';
         username: configService.get<string>('DB_USER'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
-        entities: [Clinic, ClinicHours, Practitioner, Service, Patient, Appointment],
+        entities: [Clinic, ClinicHours, Practitioner, Service, Patient, Appointment, Conversation, Message, AgentAction,],
         synchronize: true,
       }),
     }),
     BookingModule,
     AgentModule,
+    ConversationsModule,
   ],
   controllers: [AppController],
   providers: [AppService, DbBootstrapService, SeederService],
